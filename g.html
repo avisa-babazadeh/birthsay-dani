@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Danielle's Birthday Map</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
+
+    .map-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: url('map.jpg') no-repeat center center;
+      background-size: 80%;
+    }
+
+    .heart {
+      position: absolute;
+      font-size: 24px;
+      cursor: pointer;
+      color: black;
+      transition: transform 0.3s ease;
+    }
+
+    .heart:hover {
+      transform: scale(1.4);
+    }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(1);
+      background: #d0fbe9;
+      border-radius: 20px;
+      padding: 30px 40px;
+      text-align: center;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
+      animation: sparkle 0.5s ease-out;
+    }
+
+    .popup.show {
+      display: block;
+    }
+
+    .popup h2 {
+      margin: 0;
+      font-size: 18px;
+      color: #333;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 20px;
+      cursor: pointer;
+      color: #555;
+    }
+
+    @keyframes sparkle {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="map-container" id="map"></div>
+
+  <div class="popup" id="popup">
+    <span class="close-btn" onclick="hidePopup()">×</span>
+    <h2 id="popup-text">This will change</h2>
+  </div>
+
+  <script>
+    const map = document.getElementById('map');
+    const popup = document.getElementById('popup');
+    const popupText = document.getElementById('popup-text');
+
+    const hearts = [
+      { top: '7%', left: '75%' },
+      { top: '6%', left: '51%' },
+      { top: '14%', left: '35%' },
+      { top: '22%', left: '66%' },
+      { top: '32%', left: '47%' },
+      { top: '40%', left: '29%' },
+      { top: '46%', left: '55%' },
+      { top: '53%', left: '71%' },
+      { top: '58%', left: '85%' },
+      { top: '63%', left: '45%' },
+      { top: '69%', left: '21%' },
+      { top: '76%', left: '39%' },
+      { top: '83%', left: '60%' },
+      { top: '89%', left: '70%' },
+    ];
+
+    const messages = [
+      "in case I couldnt sneak in and get my phone to send this at 00:00 in your timezone because you mean a lot to me.I coded this gift using html which isnt my first language and I learnt it to be able to make you this gift and I promise next year it will be much better also the first gift was supposed to be a lot of gift boxes weach having a message and I even asked rea if she wants to write you a message too but I couldnt make that one and this one is more personal so I didnt ask her to write something. love you and enjoy your little adventure in the wrold I built for your birthday",
+      "happy birthday my sweetheart, I have never been this happy for someones birthday but your birthday? it means a lot to me , you make me happy , you make me laugh , you even give me a weird feeling that I kinda love. as I said before I dont care what happens in the future I will surely still smile when I remember these moments becuase you make me really happy and thats all that matters in the moment",
+      "I dont know why Im saying this now but anyway...I dont like it here just like how you dont like it at your aunts, this country has been through a lot more than it should in these 50 years and now were running low on everything and yet when I go out I know one this ... I might never return home but that doesnt stop me , I have seen many deaths in these 15 years that Im not scared anymore and with saying this now to you I dont want to make you worried I want to say when I go out and know theres a chance of that happening I know that at least I have sent goodmorning to you and I know at least you know I love you.please dont think this is meant to make you oity me , no , its meant to show how much Im happy about meeting you , my sweetheart",
+      "my grandfather once told me that I should only say I LOVE YOU to the man who will give me childern to rise but I dont think that is what Im doing , I dont really take advice from that old man...I say my I LOVE YOUs to you anyway. you know why? becuase my feelings toward you are diffrent surely I wont have a problem with kissing you if we meet but I also dont have a problem with you dating someone...do you get what I mean?",
+      "each of these small writtings are written in diffrent days so you can take them as how I felt about you in 15 diffrent days",
+      "lalalalalalalalalaaaaaaa did you know I LOVE youuuuuuu ??? did you know Alhaitham love you tooo????",
+      "as you know I have big dreams and one of them is meeting you , hugging you and most importantly is baking and cooking for you , I love doing those things and when I love something I want to share it with my loved ones. thats another way of showing love , in my opnion if you love someone you cant just say I LOVE YOU...you have to share things with them, things you love , and make then feel like they belong in your world",
+      "we have one thing in common that is very intresting to me , we both hate where we are and I think its one of the things that makes us close becuase we both want to leave and it makes us understand each other better...I dont have much to say today just know that I love you and Im always here for you",
+      "persian...when you are born they just write where you are from and your nationality and from that day you belive you belong between those boarders...but its just dirt like every other place with thw small diffrence that the dirt somewhere else hasnt been stepped on by me thats why I think its important to make others feel like they belong in your country, your country is on earth and earth is their home too...and you, dani , you are always welcome in my world...dont ever forget that",
+      "the day you said ypure cyno and Im nilou I went to one of my freinds dms and screamed and yapped for hours becuase that had made me so happy and from that day you just made me more happy and more happy...I dont even know if I can get happier or I will explode",
+      "I dont like dirty minded paople, they make me uncomfortable but I dont mind having some jokes like that with you (just be careful not tease me so much beacuse I might just dissapear). this was supposed to make you laugh , hopefully it did",
+      "I regret so many things that I have done but as long as they lead the way to becoming friends like this with you (or whatever you call it) I will walk that path over and over again. ",
+      "as a penguin I have walked the shores endlessly to find you the best seashell but sadly I still havent found anything that mathces your beauty after all youre so uniqe and beautifull that nothing can get close to it, let alone match it",
+      "I dont want to say I never lie , becuase I have lied a lot and hopefully that doesnt change how you see me. but theres one person I have never ever lied to and its you...now do you belive youre gorgeous?. that was all...hopefully this gift didnt disapoint you. I love you so much and happy 13th birthday",
+    ];
+
+    hearts.forEach((pos, index) => {
+      const heart = document.createElement('div');
+      heart.className = 'heart';
+      heart.style.top = pos.top;
+      heart.style.left = pos.left;
+      heart.innerHTML = '🖤';
+      heart.onclick = () => showPopup(messages[index]);
+      map.appendChild(heart);
+    });
+
+    function showPopup(message) {
+      popupText.textContent = message;
+      popup.classList.add('show');
+    }
+
+    function hidePopup() {
+      popup.classList.remove('show');
+    }
+  </script>
+</body>
+</html>
